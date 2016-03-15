@@ -21,39 +21,463 @@ namespace ShoesRUs
         {
             InitializeComponent();
             Startup su = new Startup();
+            grpProfile.Visible = false;
+            grpLogin.Visible = false;
+            grpRegister.Visible = false;
+            grpBasket.Visible = false;
+            grpViewProduct.Visible = false;
+            grpMain.Visible = false;
+            grpContact.Visible = false;
+            
         }
 
-        //Shows the LoginForm
-        private void btnShowLoginGrp_Click(object sender, EventArgs e)
+
+
+        /* /////////////////////////////CONTACT GROUP BOX/////////////////////////////////////////////////////*/
+
+        
+
+
+        OleDbConnection myConn = new OleDbConnection();
+
+        private void btnShowContact_Click(object sender, EventArgs e)//shows CONTACT US page (group box), setting the visibility of any other group boxes to false
         {
-            grpLogin.Visible = true;
+            grpContact.Visible = true;
+            grpProfile.Visible = false;
+            grpLogin.Visible = false;
+            grpRegister.Visible = false;
+            grpBasket.Visible = false;
+            grpViewProduct.Visible = false;
+            grpMain.Visible = false;
+            
         }
 
-        private void btnShowRegisterGrp_Click(object sender, EventArgs e)
+        private void btnSend_Click(object sender, EventArgs e)//sends a message to the database
         {
-            grpRegister.Visible = true;
+
+            if (string.IsNullOrEmpty(txtName.Text) || string.IsNullOrEmpty(txtEmail.Text) ||
+               string.IsNullOrEmpty(txtSubj.Text) || string.IsNullOrEmpty(txtMessage.Text))
+            {
+                MessageBox.Show("One or more fields are empty.");
+            }
+            else
+            {
+
+                Contact contact = new Contact();
+                contact.sendMessage(txtName.Text, txtEmail.Text, txtCustNo.Text, txtOrdNo.Text, cmbCategory.SelectedItem.ToString(), txtSubj.Text, txtMessage.Text);
+                int chkMessage = contact.checkMessage(txtName.Text, txtEmail.Text, txtCustNo.Text, txtOrdNo.Text, cmbCategory.SelectedItem.ToString(), txtSubj.Text, txtMessage.Text);
+                if (chkMessage == 1)
+                {
+                    MessageBox.Show("Message successfully sent!");
+                }
+                else
+                {
+                    
+                    MessageBox.Show("Error when sending message!");
+
+                }
+
+                clearFieldsContactForm();
+
+
+            }
         }
+
+        private void btnReset_Click(object sender, EventArgs e)//clear all the fields to be completed (Contact group box)
+        {
+            clearFieldsContactForm();
+        }
+
+        private void clearFieldsContactForm()//function which clear all the fields to be completed (Contact group box)
+        {
+
+            txtName.Clear();
+            txtName.Clear();
+            txtEmail.Clear();
+            txtCustNo.Clear();
+            txtOrdNo.Clear();
+            txtSubj.Clear();
+            txtMessage.Clear();
+            cmbCategory.SelectedIndex = -1;
+
+        }
+
+
+
+
+
+        /* /////////////////////////////PROFILE GROUP BOX/////////////////////////////////////////////////////*/
+
+        private void btnShowProfile_Click(object sender, EventArgs e)//shows MY PROFILE page (group box), setts the visibility of all the other group boxes to false
+        {
+            grpProfile.Visible = true;
+            grpLogin.Visible = false;
+            grpRegister.Visible = false;
+            grpBasket.Visible = false;
+            grpViewProduct.Visible = false;
+            grpMain.Visible = false;
+            grpContact.Visible = false;
+        }
+
+
+        /* ---------------------------GENERAL INFO UPDATE GROUP BOX-------------------------------------------------*/
+
+        private void btnViewProfileDetails_Click(object sender, EventArgs e)//On "My profile" group box, this button displays the group box which includes the general profile details
+        {
+            grpProfileDetails.Visible = true;
+            grpAddressUpdate.Visible = false;
+            grpCardUpdate.Visible = false;
+        }
+
+        private void btnOKGeneralInfo_Click(object sender, EventArgs e)//displays the general information about the Customer (which is hold in a group box called grpGeneralInfoProfile
+        {
+            grpGeneralInfoProfile.Visible = true;
+            try
+            {
+                myConn.ConnectionString = DatabaseConnection.dbconnect; ;
+                OleDbCommand myCmd = myConn.CreateCommand();
+
+                myCmd.CommandText = "Select CustomerTitle, CustomerDOB, CustomerGender, CustomerName, CustomerPhoneNo, CustomerEmail From Customer"
+                                                           + " Where CustomerID = @customerID";
+                myCmd.Parameters.AddWithValue("customerID", txtAddIDProfile.Text);
+
+                myConn.Open();
+                OleDbDataReader myDR = myCmd.ExecuteReader();
+                myDR.Read();
+
+                //extract information and display through the UI
+                txtTitleProfile.Text = myDR[0].ToString();
+                txtDOBProfile.Text = myDR[1].ToString();
+                txtGenderProfile.Text = myDR[2].ToString();
+                txtNameProfile.Text = myDR[3].ToString();
+                txtPhoneProfile.Text = myDR[4].ToString();
+                txtEmailProfile.Text = myDR[5].ToString();
+
+                myConn.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (myConn.State == ConnectionState.Open)
+                {
+                    myConn.Close();
+                }
+            }
+
+        }
+
+        private void btnUpdateGeneralInfoProfile_Click(object sender, EventArgs e)//button which updates the general information about the customer on the database
+        {
+            try
+            {
+                
+
+                myConn.ConnectionString = DatabaseConnection.dbconnect;
+                myConn.Open();
+
+                OleDbCommand myCmd = myConn.CreateCommand();
+
+                myCmd.CommandText = "UPDATE Customer SET CustomerTitle = @ct, CustomerGender = @cGender, CustomerName = @cName, CustomerPhoneNo = @cPhone"
+                                                           + " Where CustomerID = " + txtAddIDProfile.Text;
+                myCmd.Parameters.AddWithValue("@ct", txtTitleProfile.Text);
+                myCmd.Parameters.AddWithValue("@cGender", txtGenderProfile.Text);
+                myCmd.Parameters.AddWithValue("@cName", txtNameProfile.Text);
+                myCmd.Parameters.AddWithValue("@cPhone", txtPhoneProfile.Text);
+                
+                
+
+                int rowsChanged = myCmd.ExecuteNonQuery();
+
+                myConn.Close();
+
+                clearFieldsGenetalInfo();
+
+                MessageBox.Show("Successfully updated! ");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnClearGeneralInfo_Click(object sender, EventArgs e)//clears all the fields in the general info about customer group box
+        {
+            clearFieldsGenetalInfo();
+        }
+
+        private void clearFieldsGenetalInfo()//function which clears all the fields in the GENERAL INFORMATION group box (My profile)
+        {
+
+            txtTitleProfile.Clear();
+            txtGenderProfile.Clear();
+            txtNameProfile.Clear();
+            txtPhoneProfile.Clear();
+            txtAddIDProfile.Clear();
+            txtEmailProfile.Clear();
+            txtDOBProfile.Clear();
+           
+
+        }
+
+
+
+        /* ---------------------------ADDRESS UPDATE GROUP BOX---------------------------------------------------------------------*/
+
+
+        private void btnShowUpdateAddress_Click(object sender, EventArgs e)//displays the update address groupbox, inside my profile
+        {
+            grpProfileDetails.Visible = false;
+            grpAddressUpdate.Visible = true;
+            grpCardUpdate.Visible = false;
+        }
+
+        private void btnOKAddress_Click(object sender, EventArgs e)//displays the fields to be completed by the user in other to update the address details
+        {
+            grpAddressUpdateInfo.Visible = true;
+            
+            try
+            {
+                myConn.ConnectionString = DatabaseConnection.dbconnect; ;
+                OleDbCommand myCmd = myConn.CreateCommand();
+
+                myCmd.CommandText = "Select CustomerAddressNo, CustomerAddressStreet, CustomerAddressCity, CustomerAddressCountry, CustomerPostCode, CustomerPhoneNo From Customer"
+                                                           + " Where CustomerID = @customerID";
+                myCmd.Parameters.AddWithValue("customerID", txtAddIDAddress.Text);
+
+                myConn.Open();
+                OleDbDataReader myDR = myCmd.ExecuteReader();
+                myDR.Read();
+
+                //extract information and display through the UI
+                txtHouseNoProfile.Text = myDR[0].ToString();
+                txtStreetProfile.Text = myDR[1].ToString();
+                txtCityProfile.Text = myDR[2].ToString();
+                txtCountryProfile.Text = myDR[3].ToString();
+                txtPostcodeProfile.Text = myDR[4].ToString();
+                
+
+                myConn.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (myConn.State == ConnectionState.Open)
+                {
+                    myConn.Close();
+                }
+            }
+        }
+
+        private void btnUpdateAddress_Click(object sender, EventArgs e)//update the new address information to the database
+        {
+            try
+            {
+                myConn.ConnectionString = DatabaseConnection.dbconnect;
+                myConn.Open();
+
+                OleDbCommand myCmd = myConn.CreateCommand();
+
+                myCmd.CommandText = "UPDATE Customer SET CustomerAddressNo = @ca, CustomerAddressStreet = @caStreet, CustomerAddressCity = @caCity, CustomerAddressCountry = @caCountry, CustomerPostCode = @caPostcode "
+                                                           + " Where CustomerID = " + txtAddIDAddress.Text;
+                myCmd.Parameters.AddWithValue("@caNo", txtHouseNoProfile.Text);
+                myCmd.Parameters.AddWithValue("@caStreet", txtStreetProfile.Text);
+                myCmd.Parameters.AddWithValue("@caCity", txtCityProfile.Text);
+                myCmd.Parameters.AddWithValue("@caCountry", txtCountryProfile.Text);
+                myCmd.Parameters.AddWithValue("@caPostcode", txtPostcodeProfile.Text);
+                
+
+                int rowsChanged = myCmd.ExecuteNonQuery();
+
+                myConn.Close();
+
+                MessageBox.Show("Successfully updated! ");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnClearAddress_Click(object sender, EventArgs e)//clear fields in the address group box
+        {
+            clearFieldsAddress();
+        }
+
+        private void clearFieldsAddress()
+        {
+
+            txtAddIDAddress.Clear();
+            txtHouseNoProfile.Clear();
+            txtStreetProfile.Clear();
+            txtCityProfile.Clear();
+            txtCountryProfile.Clear();
+            txtPostcodeProfile.Clear();
+          
+        }
+
+
+
+
+        /* ---------------------------CARD UPDATE GROUP BOX----------------------------------------------------------*/
+
+
+
+        private void btnShowUpdateCardDetails_Click(object sender, EventArgs e)//shows the update card group box inside My profile
+        {
+           
+            grpProfileDetails.Visible = false;
+            grpAddressUpdate.Visible = false;
+            grpCardUpdate.Visible = true;
+        }
+
+        private void btnOKUpdateCardInfo_Click(object sender, EventArgs e)//shows the group box which contains the card details information
+        {
+            grpUpdateCardInfo.Visible = true;
+            try
+            {
+                myConn.ConnectionString = DatabaseConnection.dbconnect; ;
+                OleDbCommand myCmd = myConn.CreateCommand();
+
+                myCmd.CommandText = "Select  CustomerPaymentCardType, CustomerPaymentCardNo, CustomerPaymentCardCVV, CustomerPaymentCardName,CustomerPaymentCardExpDate From Customer"
+                                                           + " Where CustomerID = @customerID";
+                myCmd.Parameters.AddWithValue("customerID", txtCustomerIDCardProfile.Text);
+
+                myConn.Open();
+                OleDbDataReader myDR = myCmd.ExecuteReader();
+                myDR.Read();
+
+                //extract information and display through the UI
+                txtCardTypeProfile.Text = myDR[0].ToString();
+                txtCardNoProfile.Text = myDR[1].ToString();
+                txtCVVProfile.Text = myDR[2].ToString();
+                txtHolderProfile.Text = myDR[3].ToString();
+                txtExpDateProfile.Text = myDR[4].ToString();
+
+                myConn.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (myConn.State == ConnectionState.Open)
+                {
+                    myConn.Close();
+                }
+            }
+        }
+
+
+        private void btnUpdateCardDetails_Click(object sender, EventArgs e)//updates the card information introduced in the fields by the user
+        {
+            try
+            {
+                myConn.ConnectionString = DatabaseConnection.dbconnect;
+                myConn.Open();
+
+                OleDbCommand myCmd = myConn.CreateCommand();
+
+                myCmd.CommandText = "UPDATE Customer SET CustomerPaymentCardType = @cpType , CustomerPaymentCardNo = @cpCardNo, CustomerPaymentCardCVV = @cpCVV, CustomerPaymentCardName = @cpHolder,CustomerPaymentCardExpDate = @cpExpDate"
+                                                           + " Where CustomerID = " + txtCustomerIDCardProfile.Text;
+                myCmd.Parameters.AddWithValue("@cpType", txtCardTypeProfile.Text);
+                myCmd.Parameters.AddWithValue("@cpCardNo", txtCardNoProfile.Text);
+                myCmd.Parameters.AddWithValue("@cpCVV",  txtCVVProfile.Text);
+                myCmd.Parameters.AddWithValue("@cpHolder", txtHolderProfile.Text);
+                myCmd.Parameters.AddWithValue("@cpExpDate", txtExpDateProfile.Text);
+
+
+                int rowsChanged = myCmd.ExecuteNonQuery();
+
+                myConn.Close();
+
+                clearFieldsCardNo();
+
+                MessageBox.Show("Successfully updated! ");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnClearCard_Click(object sender, EventArgs e)//clears the fields in the update card detail group box
+        {
+            clearFieldsCardNo();
+        }
+
+        private void clearFieldsCardNo()//function which clears all the fields in the GENERAL INFORMATION group box (My profile)
+        {
+
+            txtCustomerIDCardProfile.Clear();
+            txtCardTypeProfile.Clear();
+            txtCardNoProfile.Clear();
+            txtExpDateProfile.Clear();
+            txtCVVProfile.Clear();
+            txtHolderProfile.Clear();
+
+        }
+
+
+
+        /* --------------------------------------------PURCHASES GROUP BOX----------------------------------------------------------*/
+
+
+
+        /*private void btnOKPurchasesDisplay_Click(object sender, EventArgs e)
+        {
+            string sql = @"Select transDate, transType, transAmount From ATMTrans "
+                           + @"Where cardNumber=@cardno And transDate>@date Order By transDate Desc";
+
+            //create DataAdapter and assign SQL instruction and Connection
+            OleDbDataAdapter myDA = new OleDbDataAdapter(sql, myConn);
+
+            //fill parameters
+            myDA.SelectCommand.Parameters.AddWithValue("@cardno", clearedCardID);
+            DateTime timenow = DateTime.Now;
+            DateTime timespan = timenow.AddYears(-2);
+            myDA.SelectCommand.Parameters.AddWithValue("@date", timespan.ToString("dd/MM/yyy HH:mm:ss"));
+
+            //create DataTable to hold result...
+            DataTable dtTransactions = new DataTable();
+            //pull data from Db into DataTable
+            myDA.Fill(dtTransactions);
+
+            //link DataTable to the DataGridView control
+            dataGridView1.AutoGenerateColumns = true;
+            dataGridView1.DataSource = dtTransactions;
+
+            //configure DataGridView display options
+            dataGridView1.Columns[0].DefaultCellStyle.Format = "D";  //format this column as a date  
+            dataGridView1.Columns[2].DefaultCellStyle.Format = "C";  //format this column as a currency
+            dataGridView1.Columns[0].HeaderText = "Date";
+            dataGridView1.Columns[1].HeaderText = "Action";
+            dataGridView1.Columns[2].HeaderText = "Amount";
+            dataGridView1.Columns[0].Width = 160;
+            dataGridView1.ReadOnly = true;
+        }
+
+*/
+
+
+
+
+
+
 
         private void btnAdmin_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void btnContact_Click(object sender, EventArgs e)
-        {
-            grpContact.Visible = true;
-        }
-
-        private void btnProfile_Click(object sender, EventArgs e)
-        {
-            grpProfile.Visible = true;
-        }
+       
 
         private void btnBasket_Click(object sender, EventArgs e)
         {
             grpBasket.Visible = true;
         }
 
+        
+
+
+        /* /////////////////////////////LOG IN GROUP BOX +++++ LOG OUT BUTTON/////////////////////////////////////////////////////*/
         private void btnLogout_Click(object sender, EventArgs e)
         {
 
@@ -66,7 +490,7 @@ namespace ShoesRUs
                 login.setLoggedIn(login.loggingIn(txtLoginEmail.Text, txtLoginPassword.Text));
                 grpLogin.Visible = false;
                 btnShowRegisterGrp.Visible = false;
-                btnProfile.Visible = true;
+                btnShowProfile.Visible = true;
                 btnBasket.Visible = true;
                 btnLogout.Visible = true;
                 if (login.checkAdmin() == true)
@@ -81,6 +505,20 @@ namespace ShoesRUs
             {
                 MessageBox.Show("Login details incorrect!");
             }
+        }
+
+
+        //Shows the LoginForm
+        private void btnShowLoginGrp_Click(object sender, EventArgs e)
+        {
+            grpLogin.Visible = true;
+        }
+
+        /* /////////////////////////////REGISTRATION GROUP BOX/////////////////////////////////////////////////////*/
+
+        private void btnShowRegisterGrp_Click(object sender, EventArgs e)
+        {
+            grpRegister.Visible = true;
         }
 
         private void btnRegister_Click(object sender, EventArgs e)
@@ -180,7 +618,8 @@ namespace ShoesRUs
         private void btnCancelRegister_Click(object sender, EventArgs e)
         {
             register.clearFields();
-        }        
+        }
 
+       
     }
 }
