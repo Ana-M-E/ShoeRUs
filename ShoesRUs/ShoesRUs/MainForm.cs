@@ -127,6 +127,7 @@ namespace ShoesRUs
             grpProfileDetails.Visible = true;
             grpAddressUpdate.Visible = false;
             grpCardUpdate.Visible = false;
+            grpPurchases.Visible = false;
         }
 
         private void btnOKGeneralInfo_Click(object sender, EventArgs e)//displays the general information about the Customer (which is hold in a group box called grpGeneralInfoProfile
@@ -229,6 +230,7 @@ namespace ShoesRUs
             grpProfileDetails.Visible = false;
             grpAddressUpdate.Visible = true;
             grpCardUpdate.Visible = false;
+            grpPurchases.Visible = true;
         }
 
         private void btnOKAddress_Click(object sender, EventArgs e)//displays the fields to be completed by the user in other to update the address details
@@ -328,6 +330,7 @@ namespace ShoesRUs
             grpProfileDetails.Visible = false;
             grpAddressUpdate.Visible = false;
             grpCardUpdate.Visible = true;
+            grpPurchases.Visible = false;
         }
 
         private void btnOKUpdateCardInfo_Click(object sender, EventArgs e)//shows the group box which contains the card details information
@@ -417,44 +420,83 @@ namespace ShoesRUs
 
 
 
+
         /* --------------------------------------------PURCHASES GROUP BOX----------------------------------------------------------*/
 
 
-
-        /*private void btnOKPurchasesDisplay_Click(object sender, EventArgs e)
+        private void btnViewPurchases_Click(object sender, EventArgs e)//shows the group box for purchases 
         {
-            string sql = @"Select transDate, transType, transAmount From ATMTrans "
-                           + @"Where cardNumber=@cardno And transDate>@date Order By transDate Desc";
+            grpPurchases.Visible = true;
+            grpProfileDetails.Visible = false;
+            grpAddressUpdate.Visible = false;
+            grpCardUpdate.Visible = false;
 
-            //create DataAdapter and assign SQL instruction and Connection
-            OleDbDataAdapter myDA = new OleDbDataAdapter(sql, myConn);
-
-            //fill parameters
-            myDA.SelectCommand.Parameters.AddWithValue("@cardno", clearedCardID);
-            DateTime timenow = DateTime.Now;
-            DateTime timespan = timenow.AddYears(-2);
-            myDA.SelectCommand.Parameters.AddWithValue("@date", timespan.ToString("dd/MM/yyy HH:mm:ss"));
-
-            //create DataTable to hold result...
-            DataTable dtTransactions = new DataTable();
-            //pull data from Db into DataTable
-            myDA.Fill(dtTransactions);
-
-            //link DataTable to the DataGridView control
-            dataGridView1.AutoGenerateColumns = true;
-            dataGridView1.DataSource = dtTransactions;
-
-            //configure DataGridView display options
-            dataGridView1.Columns[0].DefaultCellStyle.Format = "D";  //format this column as a date  
-            dataGridView1.Columns[2].DefaultCellStyle.Format = "C";  //format this column as a currency
-            dataGridView1.Columns[0].HeaderText = "Date";
-            dataGridView1.Columns[1].HeaderText = "Action";
-            dataGridView1.Columns[2].HeaderText = "Amount";
-            dataGridView1.Columns[0].Width = 160;
-            dataGridView1.ReadOnly = true;
         }
 
-*/
+        private void btnOKPurchasesDisplay_Click(object sender, EventArgs e)//displays the list of orders
+        {
+            grpListPurchasesProfile.Visible = true;
+            try
+            {
+                myConn.ConnectionString = DatabaseConnection.dbconnect; ;
+                OleDbCommand myCmd = myConn.CreateCommand();
+
+                myCmd.CommandText = "SELECT Orders.OrderID, Orders.OrderDate FROM  Orders, Invoice WHERE  Invoice.OrderID=Orders.OrderID AND Invoice.CustomerID = " + txtIDCustomerPurchases.Text;
+
+                MessageBox.Show(myCmd.CommandText);
+
+
+                myConn.Open();
+                OleDbDataReader myDR = myCmd.ExecuteReader();
+
+
+                lstView.View = View.Details;
+
+                while (myDR.Read())
+                {
+                    var item = new ListViewItem();
+                    item.Text = myDR["OrderID"].ToString();
+                    item.SubItems.Add(myDR["OrderDate"].ToString());
+
+
+                    lstView.Items.Add(item);
+                }
+
+
+                myConn.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (myConn.State == ConnectionState.Open)
+                {
+                    myConn.Close();
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -620,6 +662,6 @@ namespace ShoesRUs
             register.clearFields();
         }
 
-       
+        
     }
 }
